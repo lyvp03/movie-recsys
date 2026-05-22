@@ -1,0 +1,57 @@
+from application.dtos import RecommendationDTO
+from domain.exceptions import EntityNotFoundError, DomainError
+from domain.interfaces.i_cf_model import ICFModel
+from domain.interfaces.i_movie_repo import IMovieRepository
+from domain.interfaces.i_rating_repo import IRatingRepository
+
+
+class GetCollabRecommendations:
+    def __init__(
+        self,
+        movie_repo: IMovieRepository,
+        rating_repo: IRatingRepository,
+        cf_model: ICFModel,
+    ):
+        self._movie_repo = movie_repo
+        self._rating_repo = rating_repo
+        self._cf_model = cf_model
+
+    def execute(self, user_id: int, top_k: int = 10) -> list[RecommendationDTO]:
+        if top_k <= 0:
+            raise DomainError("top_k must be greater than 0")
+
+        # 1. Get movies the user has already rated
+        rated_ids = self._rating_repo.get_user_rated_movie_ids(user_id)
+
+        # 2. Get all movies as candidates (exclude already rated)
+        all_movies = self._movie_repo.get_all()
+        candidates = [m.id for m in all_movies if m.id not in rated_ids]
+        
+        if not candidates:
+            # User has rated all movies or there are no movies
+            return []
+
+        # 3. Predict scores and get top-K candidates
+        try:
+            top_n = self._cf_model.get_top_n(user_id, candidates, top_k)
+        except Exception as e:
+            raise DomainError(f"Failed to get predictions: {e}")
+
+        # 4. Enrich with movie details
+        # We need a quick lookup for movies
+        movie_dict = {m.id: m for m in all_movies}
+        
+        recommendations = []
+        for movie_id, score in top_n:
+            movie = movie_dict.get(movie_id)
+            if movie:
+                dto = RecommendationDTO(
+                    movie_id=movie.id,
+                    tmdb_id=movie.tmdb_id,
+                    title=movie.title,
+                    genres=movie.genres,
+                    similarity_score=score,
+                )
+                recommendations.append(dto)
+
+        return recommendations

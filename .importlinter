@@ -1,0 +1,13 @@
+[importlinter]
+root_package = src
+
+[importlinter:contract:hexagonal-layers]
+name = Hexagonal Architecture Layers
+type = layers
+layers =
+    api
+    infrastructure
+    application
+    domain
+containers =
+    src
