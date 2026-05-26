@@ -1,14 +1,10 @@
-from dataclasses import dataclass
+"""Application-layer DTOs.
 
+Re-exports domain DTOs for backward compatibility.
+Application-specific DTO extensions can be added here.
+"""
 
-@dataclass
-class RecommendationDTO:
-    movie_id: int
-    tmdb_id: int
-    title: str
-    genres: str
-    similarity_score: float
+from domain.dtos import EmotionRecommendationResult as EmotionRecommendationDTO
+from domain.dtos import RecommendationResult as RecommendationDTO
 
-@dataclass
-class EmotionRecommendationDTO(RecommendationDTO):
-    emotion_tags: dict[str, float] | None = None
+__all__ = ["RecommendationDTO", "EmotionRecommendationDTO"]

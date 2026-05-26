@@ -21,6 +21,9 @@ class InMemoryMovieRepository(IMovieRepository):
     def get_all(self) -> list[Movie]:
         return list(self._movies.values())
 
+    def get_all_ids(self) -> list[int]:
+        return list(self._movies.keys())
+
     def get_by_ids(self, movie_ids: list[int]) -> list[Movie]:
         result = []
         for mid in movie_ids:

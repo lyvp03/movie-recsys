@@ -13,6 +13,11 @@ class IMovieRepository(ABC):
         pass
 
     @abstractmethod
+    def get_all_ids(self) -> list[int]:
+        """Return all movie IDs without loading full entities."""
+        pass
+
+    @abstractmethod
     def get_by_ids(self, movie_ids: list[int]) -> list[Movie]:
         pass
 

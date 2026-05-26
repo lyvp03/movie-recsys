@@ -23,12 +23,12 @@ class GetCollabRecommendations:
         # 1. Get movies the user has already rated
         rated_ids = self._rating_repo.get_user_rated_movie_ids(user_id)
 
-        # 2. Get all movies as candidates (exclude already rated)
-        all_movies = self._movie_repo.get_all()
-        candidates = [m.id for m in all_movies if m.id not in rated_ids]
+        # 2. Get all movie IDs as candidates (exclude already rated)
+        # Uses get_all_ids() to avoid loading full entities into memory
+        all_movie_ids = self._movie_repo.get_all_ids()
+        candidates = [mid for mid in all_movie_ids if mid not in rated_ids]
         
         if not candidates:
-            # User has rated all movies or there are no movies
             return []
 
         # 3. Predict scores and get top-K candidates
@@ -37,9 +37,10 @@ class GetCollabRecommendations:
         except Exception as e:
             raise DomainError(f"Failed to get predictions: {e}")
 
-        # 4. Enrich with movie details
-        # We need a quick lookup for movies
-        movie_dict = {m.id: m for m in all_movies}
+        # 4. Enrich only the top-K results with full movie details
+        top_movie_ids = [mid for mid, _ in top_n]
+        movies = self._movie_repo.get_by_ids(top_movie_ids)
+        movie_dict = {m.id: m for m in movies}
         
         recommendations = []
         for movie_id, score in top_n:

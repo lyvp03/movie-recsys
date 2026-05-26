@@ -9,7 +9,7 @@ from qdrant_client.models import PointStruct
 from sqlmodel import Session, select
 
 sys.path.append('src')
-from infrastructure.db.connection import engine
+from infrastructure.db.connection import get_engine
 from infrastructure.db.models import MovieTable
 
 def main():
@@ -24,7 +24,7 @@ def main():
 
     print(f'Found {len(cache)} items in cache.')
 
-    with Session(engine) as session:
+    with Session(get_engine()) as session:
         movies = {m.id: m for m in session.exec(select(MovieTable)).all()}
 
     points = []

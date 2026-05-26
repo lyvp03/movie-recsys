@@ -46,7 +46,7 @@ sys.path.insert(0, str(_BACKEND_SRC))
 
 load_dotenv()
 
-from infrastructure.db.connection import engine  # noqa: E402
+from infrastructure.db.connection import get_engine  # noqa: E402
 from infrastructure.db.models import MovieTable, RatingTable, UserTable  # noqa: E402
 from sqlmodel import Session, select  # noqa: E402
 
@@ -636,7 +636,7 @@ def main() -> None:
     source_rating_count = len(pd.read_csv(RATINGS_CSV))
 
     # Steps 7 & 8: Write to DB
-    with Session(engine) as session:
+    with Session(get_engine()) as session:
         upsert_movies(session, merged)
         ensure_users(session, RATINGS_CSV)
         insert_ratings(session, RATINGS_CSV, LINKS_CSV)

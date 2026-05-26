@@ -11,7 +11,7 @@ from sqlmodel import Session
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
 
-from infrastructure.db.connection import engine
+from infrastructure.db.connection import get_engine
 from infrastructure.db.postgres_movie_repo import PostgresMovieRepository
 from infrastructure.ml.tfidf_vectorizer import TFIDFVectorizerWrapper
 from infrastructure.vector.qdrant_vector_store import QdrantVectorStore
@@ -40,7 +40,7 @@ def main():
         
     vector_store = QdrantVectorStore(client)
     
-    with Session(engine) as session:
+    with Session(get_engine()) as session:
         repo = PostgresMovieRepository(session)
         logger.info("Fetching all movies from DB...")
         movies = repo.get_all()

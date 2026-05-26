@@ -15,9 +15,9 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 from sqlmodel import Session, select
 
 from application.feature_engineering import build_feature_text
-from infrastructure.db.connection import engine
+from infrastructure.db.connection import get_engine
 from infrastructure.db.models import MovieTable
-from infrastructure.external.gemini_embedding_encoder import GeminiEmbeddingEncoder
+from infrastructure.external.fastembed_encoder import FastEmbedEncoder
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -47,15 +47,9 @@ def save_cache(cache: dict[int, list[float]]):
 def main():
     load_dotenv()
 
-    # 1. Init Encoder with API Keys
-    keys_str = os.getenv("GEMINI_API_KEYS", "")
-    api_keys = [k.strip() for k in keys_str.split(",") if k.strip()]
-    if not api_keys:
-        logger.error("No GEMINI_API_KEYS found in environment. Exiting.")
-        return
-
-    encoder = GeminiEmbeddingEncoder(api_keys=api_keys)
-    logger.info(f"Initialized GeminiEncoder with {len(api_keys)} keys.")
+    # 1. Init FastEmbed Encoder
+    encoder = FastEmbedEncoder()
+    logger.info(f"Initialized FastEmbedEncoder with model {encoder.model_name}")
 
     # 2. Setup Qdrant
     qdrant_url = os.getenv("QDRANT_URL")
@@ -80,12 +74,12 @@ def main():
     logger.info(f"Creating collection: {EMBEDDING_COLLECTION}")
     qdrant_client.create_collection(
         collection_name=EMBEDDING_COLLECTION,
-        vectors_config=VectorParams(size=3072, distance=Distance.COSINE),
+        vectors_config=VectorParams(size=768, distance=Distance.COSINE),
     )
 
     # 3. Load all movies
     logger.info("Loading movies from database...")
-    with Session(engine) as session:
+    with Session(get_engine()) as session:
         movies = session.exec(select(MovieTable)).all()
         logger.info(f"Loaded {len(movies)} movies.")
 

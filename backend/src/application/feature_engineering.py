@@ -1,5 +1,21 @@
-def build_feature_text(movie) -> str:
-    """Combine all text features into a single string for text representation."""
+from typing import Protocol
+
+
+class HasTextFeatures(Protocol):
+    """Duck type for objects with text feature fields (Movie entity or MovieTable)."""
+
+    genres: str
+    overview: str
+    cast: str
+    keywords: str
+
+
+def build_feature_text(movie: HasTextFeatures) -> str:
+    """Combine all text features into a single string for text representation.
+
+    Works with both domain Movie entities and infrastructure MovieTable objects
+    via structural subtyping (Protocol).
+    """
     parts = []
     if movie.genres:
         parts.append(movie.genres.replace(",", " "))

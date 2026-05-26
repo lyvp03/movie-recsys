@@ -33,6 +33,10 @@ class PostgresMovieRepository(IMovieRepository):
         rows = self._session.exec(select(MovieTable)).all()
         return [self._to_entity(row) for row in rows]
 
+    def get_all_ids(self) -> list[int]:
+        rows = self._session.exec(select(MovieTable.id)).all()
+        return list(rows)
+
     def get_by_ids(self, movie_ids: list[int]) -> list[Movie]:
         if not movie_ids:
             return []

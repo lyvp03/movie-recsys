@@ -1,36 +1,30 @@
 import re
-from pathlib import Path
 
 from domain.entities.emotion import EmotionVector
 from domain.interfaces.i_emotion_extractor import IEmotionExtractor
 
-class NRCEmotionExtractor(IEmotionExtractor):
-    def __init__(self, lexicon_path: str = "data/raw/NRC-Emotion-Lexicon.txt"):
-        self.lexicon_path = Path(lexicon_path)
-        # map: word -> dict of emotions { "anger": 1, "joy": 0, ... }
-        self._lexicon: dict[str, dict[str, int]] = {}
-        self._load_lexicon()
 
-    def _load_lexicon(self):
-        if not self.lexicon_path.exists():
-            # If not exists, initialize empty. The script can download it later.
-            return
-            
-        with open(self.lexicon_path, "r", encoding="utf-8") as f:
-            for line in f:
-                parts = line.strip().split("\t")
-                if len(parts) == 3:
-                    word, emotion, assoc = parts
-                    word = word.lower()
-                    
-                    if word not in self._lexicon:
-                        self._lexicon[word] = {}
-                        
-                    # assoc is "0" or "1"
-                    try:
-                        self._lexicon[word][emotion] = int(assoc)
-                    except ValueError:
-                        pass
+# The 8 Plutchik emotions we track
+_EMOTION_NAMES = frozenset(
+    ["joy", "trust", "fear", "surprise", "sadness", "disgust", "anger", "anticipation"]
+)
+
+
+class NRCEmotionExtractor(IEmotionExtractor):
+    """Extract emotion scores from text using the NRC Emotion Lexicon.
+
+    Uses the bundled NRCLex package lexicon (14k words → 8 Plutchik emotions).
+    """
+
+    def __init__(self) -> None:
+        # NRCLex stores its lexicon as a class-level dict.
+        # We extract it once at init time to avoid re-processing per call.
+        from nrclex import NRCLex
+
+        # NRCLex requires a text argument; we pass a dummy to access the lexicon.
+        # Note: __lexicon__ is the only way to access the raw word→emotion mapping.
+        dummy = NRCLex("dummy")
+        self._lexicon: dict[str, list[str]] = dummy.__lexicon__
 
     def extract(self, text: str) -> EmotionVector:
         if not text:
@@ -38,24 +32,20 @@ class NRCEmotionExtractor(IEmotionExtractor):
 
         # Tokenize (lowercase, extract words)
         words = re.findall(r"\b\w+\b", text.lower())
-        
-        counts = {
-            "joy": 0, "trust": 0, "fear": 0, "surprise": 0,
-            "sadness": 0, "disgust": 0, "anger": 0, "anticipation": 0
-        }
-        
+
+        counts: dict[str, int] = {emo: 0 for emo in _EMOTION_NAMES}
         total_hits = 0
+
         for word in words:
-            if word in self._lexicon:
-                emotions = self._lexicon[word]
-                for emo, assoc in emotions.items():
-                    if emo in counts and assoc == 1:
-                        counts[emo] += 1
-                        total_hits += 1
+            emotions = self._lexicon.get(word, [])
+            for emo in emotions:
+                if emo in counts:
+                    counts[emo] += 1
+                    total_hits += 1
 
         if total_hits == 0:
             return EmotionVector()
-            
-        # Normalize
+
+        # Normalize so all values sum to 1.0
         normalized = {k: v / total_hits for k, v in counts.items()}
         return EmotionVector.from_dict(normalized)

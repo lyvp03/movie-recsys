@@ -9,6 +9,9 @@ from application.use_cases.get_tfidf_recommendations import GetTFIDFRecommendati
 from application.use_cases.get_embedding_recommendations import GetEmbeddingRecommendations
 from application.use_cases.get_collab_recommendations import GetCollabRecommendations
 from application.use_cases.get_hybrid_recommendations import GetHybridRecommendations
+from application.use_cases.get_emotion_recommendations import GetEmotionRecommendations
+from infrastructure.db.postgres_emotion_repo import PostgresEmotionRepository
+from infrastructure.external.fastembed_encoder import FastEmbedEncoder
 
 
 def get_qdrant_client(request: Request):
@@ -69,3 +72,17 @@ def get_hybrid_embedding_use_case(
     rating_repo: PostgresRatingRepository = Depends(get_rating_repository),
 ) -> GetHybridRecommendations:
     return GetHybridRecommendations(cb_use_case, cf_use_case, rating_repo)
+
+def get_emotion_repository(session: Session = Depends(get_session)) -> PostgresEmotionRepository:
+    return PostgresEmotionRepository(session)
+
+def get_embedding_encoder(request: Request) -> FastEmbedEncoder:
+    return request.app.state.embedding_encoder
+
+def get_emotion_recommendations_use_case(
+    movie_repo: PostgresMovieRepository = Depends(get_movie_repository),
+    vector_store: QdrantVectorStore = Depends(get_vector_store),
+    emotion_repo: PostgresEmotionRepository = Depends(get_emotion_repository),
+    embedding_encoder: FastEmbedEncoder = Depends(get_embedding_encoder),
+) -> GetEmotionRecommendations:
+    return GetEmotionRecommendations(embedding_encoder, vector_store, movie_repo, emotion_repo)

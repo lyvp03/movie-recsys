@@ -30,7 +30,10 @@ class MatrixFactorizationSVD:
         """
         if not ratings:
             return
-            
+
+        # Copy to avoid mutating caller's data during shuffle
+        ratings = list(ratings)
+
         self.global_mean = sum(r for _, _, r in ratings) / len(ratings)
         
         # Initialize biases and latent factors
