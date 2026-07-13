@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 EMBEDDING_COLLECTION = os.getenv("QDRANT_COLLECTION_EMBEDDING", "movies_embedding")
-CACHE_FILE = Path("data/processed/embeddings_cache.json")
+CACHE_FILE = Path("data/processed/embeddings_cache_v2.json")
 
 
 def load_cache() -> dict[int, list[float]]:
@@ -74,7 +74,7 @@ def main():
     logger.info(f"Creating collection: {EMBEDDING_COLLECTION}")
     qdrant_client.create_collection(
         collection_name=EMBEDDING_COLLECTION,
-        vectors_config=VectorParams(size=768, distance=Distance.COSINE),
+        vectors_config=VectorParams(size=384, distance=Distance.COSINE),
     )
 
     # 3. Load all movies

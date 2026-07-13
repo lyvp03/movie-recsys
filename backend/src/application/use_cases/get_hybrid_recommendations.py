@@ -61,9 +61,10 @@ class GetHybridRecommendations:
             score_map[r.movie_id] = score_map.get(r.movie_id, 0.0) + w_cb * r.similarity_score
             movie_details[r.movie_id] = r
 
-        # Merge CF
+        # Merge CF (normalize score from 1-5 to 0-1 scale)
         for r in cf_results:
-            score_map[r.movie_id] = score_map.get(r.movie_id, 0.0) + w_cf * r.similarity_score
+            normalized_cf_score = r.similarity_score / 5.0
+            score_map[r.movie_id] = score_map.get(r.movie_id, 0.0) + w_cf * normalized_cf_score
             if r.movie_id not in movie_details:
                 movie_details[r.movie_id] = r
 

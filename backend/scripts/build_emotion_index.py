@@ -3,7 +3,7 @@
 Pipeline:
   1. Load crawled reviews from cache
   2. Extract NRC emotion vectors per movie → save to Postgres
-  3. Encode review text with FastEmbed → upsert 768-dim vectors to Qdrant 'movies_emotion'
+  3. Encode review text with FastEmbed → upsert 384-dim vectors to Qdrant 'movies_emotion'
 """
 
 import json
@@ -64,7 +64,7 @@ def setup_qdrant(qdrant_client: QdrantClient) -> None:
     logger.info("Creating collection: %s", EMOTION_COLLECTION)
     qdrant_client.create_collection(
         collection_name=EMOTION_COLLECTION,
-        vectors_config=VectorParams(size=768, distance=Distance.COSINE),
+        vectors_config=VectorParams(size=384, distance=Distance.COSINE),
     )
 
 

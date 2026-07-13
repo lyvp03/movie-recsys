@@ -48,3 +48,20 @@ class PostgresMovieRepository(IMovieRepository):
         query = select(MovieTable).where(MovieTable.genres.ilike(f"%{genre}%"))
         rows = self._session.exec(query).all()
         return [self._to_entity(row) for row in rows]
+
+    def search_by_title(self, query: str, limit: int = 20) -> list[Movie]:
+        query_str = f"%{query}%"
+        rows = self._session.exec(
+            select(MovieTable)
+            .where(MovieTable.title.ilike(query_str))
+            .limit(limit)
+        ).all()
+        return [self._to_entity(row) for row in rows]
+
+    def get_popular(self, limit: int = 20) -> list[Movie]:
+        rows = self._session.exec(
+            select(MovieTable)
+            .order_by(MovieTable.avg_rating.desc())
+            .limit(limit)
+        ).all()
+        return [self._to_entity(row) for row in rows]

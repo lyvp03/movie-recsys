@@ -78,6 +78,11 @@ class MatrixFactorizationSVD:
         # Clip to [0.5, 5.0]
         return max(0.5, min(5.0, pred))
 
+    def get_top_n(self, user_id: int, movie_ids: list[int], n: int) -> list[tuple[int, float]]:
+        predictions = [(mid, self.predict(user_id, mid)) for mid in movie_ids]
+        predictions.sort(key=lambda x: x[1], reverse=True)
+        return predictions[:n]
+
 
 class CustomSVDModel(ICFModel):
     def __init__(self, model_path: str = "data/processed/cf_model.pkl"):

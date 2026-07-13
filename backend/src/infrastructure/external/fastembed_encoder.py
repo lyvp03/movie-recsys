@@ -3,7 +3,7 @@ from domain.interfaces.i_embedding_encoder import IEmbeddingEncoder
 from domain.exceptions import EmbeddingServiceError
 
 class FastEmbedEncoder(IEmbeddingEncoder):
-    def __init__(self, model_name: str = "BAAI/bge-base-en-v1.5"):
+    def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5"):
         try:
             import os
             os.makedirs("data/models", exist_ok=True)

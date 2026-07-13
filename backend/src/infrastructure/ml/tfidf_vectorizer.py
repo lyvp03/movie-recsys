@@ -12,7 +12,8 @@ class TFIDFVectorizerWrapper:
         self._vectorizer = TfidfVectorizer(
             max_features=max_features,
             stop_words="english",
-            ngram_range=(1, 2),
+            ngram_range=(1, 3),
+            sublinear_tf=True,
         )
         self._is_fitted = False
 

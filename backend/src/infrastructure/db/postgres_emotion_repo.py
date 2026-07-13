@@ -75,3 +75,19 @@ class PostgresEmotionRepository(IEmotionRepository):
                 anticipation=r.anticipation,
             )
         return result
+
+    def get_all(self) -> dict[int, EmotionVector]:
+        records = self._session.exec(select(EmotionVectorTable)).all()
+        result = {}
+        for r in records:
+            result[r.movie_id] = EmotionVector(
+                joy=r.joy,
+                trust=r.trust,
+                fear=r.fear,
+                surprise=r.surprise,
+                sadness=r.sadness,
+                disgust=r.disgust,
+                anger=r.anger,
+                anticipation=r.anticipation,
+            )
+        return result

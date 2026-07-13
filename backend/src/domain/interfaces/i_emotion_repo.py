@@ -16,3 +16,8 @@ class IEmotionRepository(ABC):
     def get_by_movie_ids(self, movie_ids: list[int]) -> dict[int, EmotionVector]:
         """Get emotion vectors for multiple movies."""
         pass
+
+    @abstractmethod
+    def get_all(self) -> dict[int, EmotionVector]:
+        """Get all stored emotion vectors. Returns {movie_id: EmotionVector}."""
+        pass
